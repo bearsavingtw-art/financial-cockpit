@@ -1,0 +1,21 @@
+{
+  "name": "Bear.saving 財務系統",
+  "short_name": "Bear 系統",
+  "description": "讓平凡的生活更有底氣。專屬妳的動態財務系統與計算機。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fcfbf9",
+  "theme_color": "#fcfbf9",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
