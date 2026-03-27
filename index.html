@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bear 財務駕駛艙 | Financial Cockpit</title>
-    
-    <link rel="manifest" href="manifest_app.json">
     <meta name="theme-color" content="#fcfbf9">
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="icon" type="image/png" sizes="192x192" href="logo.png">
@@ -2859,12 +2857,14 @@ function exportToExcel() {
             if (hasAnyUserData()) writeAutoBackup('beforeunload');
         });
 
-        if ('serviceWorker' in navigator) { 
-            window.addEventListener('load', () => { 
-                navigator.serviceWorker.register('sw.js').catch(err => { console.log('ServiceWorker 註冊失敗: ', err); }); 
+        /* service worker registration temporarily disabled for GitHub Pages setup */); 
             }); 
         }
     </script>
+
+<script>
+  let batchRowCounter = 0;
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -2878,6 +2878,5 @@ function exportToExcel() {
 
   console.log('✅ Supabase 已連線');
 </script>
-
 </body>
 </html>
