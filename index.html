@@ -21,29 +21,23 @@
 
     <style>
         :root {
-            --bg-color: #f8f4ef; --text-primary: #5c4b42; --text-secondary: #8f8076;
-            --accent: #b8876b; --card-bg: #fffdf9; --success: #7eb889;
-            --warning: #d9b44a; --danger: #d97a72; --info: #7da8c7;
-            --gold: #c89c63; --bar-bg: #ece4db;
-            --input-bg: #fcf7f1; --accent-soft: #efe2d4; --accent-deep: #8d6754; --line-soft: rgba(184,135,107,0.18);
+            --bg-color: #fcfbf9; --text-primary: #5a4d41; --text-secondary: #968c83;
+            --accent: #b08d85; --card-bg: #ffffff; --success: #81c784;
+            --warning: #ffd54f; --danger: #e57373; --info: #64b5f6;
+            --gold: #d4a373; --bar-bg: #eee;
+            --input-bg: #fdfbf7;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Montserrat', 'Noto Serif TC', sans-serif; background: linear-gradient(180deg, #fbf8f4 0%, var(--bg-color) 220px); color: var(--text-primary); margin: 0; padding: 0; padding-bottom: 90px; overscroll-behavior-y: none; line-height: 1.55; }
-        header { background: rgba(248,244,239,0.92); backdrop-filter: blur(10px); padding: 22px 20px 12px; text-align: center; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(92,75,66,0.06); }
-        h1 { font-family: 'Playfair Display', serif; margin: 0; color: var(--accent-deep); font-size: 1.58rem; letter-spacing: 0.02em; }
+        body { font-family: 'Montserrat', 'Noto Serif TC', sans-serif; background-color: var(--bg-color); color: var(--text-primary); margin: 0; padding: 0; padding-bottom: 90px; overscroll-behavior-y: none; }
+        header { background: var(--bg-color); padding: 20px 20px 10px; text-align: center; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        h1 { font-family: 'Playfair Display', serif; margin: 0; color: var(--accent); font-size: 1.5rem; }
 
-        .page { display: none; padding: 22px 20px 28px; animation: fadeIn 0.3s ease; }
+        .page { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .card { background: var(--card-bg); border-radius: 24px; padding: 22px 20px; box-shadow: 0 14px 32px rgba(92,75,66,0.06); margin-bottom: 18px; border: 1px solid var(--line-soft); }
-        .card-title { font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 1rem; letter-spacing: 0.01em; }
-        .page-intro { background: linear-gradient(135deg, #fffaf4 0%, #f6ede3 100%); border: 1px solid var(--line-soft); border-radius: 24px; padding: 18px 18px 16px; margin-bottom: 18px; box-shadow: 0 12px 30px rgba(184,135,107,0.08); }
-        .page-intro-title { font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
-        .page-intro-desc { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.65; }
-        .soft-note { background: rgba(184,135,107,0.08); border: 1px dashed rgba(184,135,107,0.28); border-radius: 16px; padding: 12px 14px; font-size: 0.8rem; color: var(--text-primary); line-height: 1.6; }
-        .section-kicker { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--accent-deep); background: rgba(184,135,107,0.12); border-radius: 999px; padding: 5px 10px; margin-bottom: 10px; font-weight: 700; letter-spacing: 0.02em; }
-        .gentle-chip { display:inline-flex; align-items:center; gap:6px; font-size:0.72rem; padding:5px 10px; border-radius:999px; background:#fff; color:var(--accent-deep); border:1px solid var(--line-soft); font-weight:700; }
+        .card { background: var(--card-bg); border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(90,77,65,0.05); margin-bottom: 20px; border: 1px solid rgba(176, 141, 133, 0.1); }
+        .card-title { font-weight: 600; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
 
         .budget-group-title { font-size:0.85rem; font-weight:bold; margin: 15px 0 8px; color:var(--text-primary); border-bottom: 1px solid #eee; padding-bottom:4px; display: flex; align-items: center; gap: 5px; }
         .budget-item { margin-bottom: 12px; }
@@ -76,14 +70,14 @@
         .status-stop { background: rgba(229, 115, 115, 0.2); color: var(--danger); }
         .timer-badge { display: inline-block; background: #333; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; margin-top: 5px; font-family: monospace; }
 
-        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; background: rgba(184,135,107,0.08); padding: 12px 15px; border-radius: 20px; border: 1px solid var(--line-soft); }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(176, 141, 133, 0.05); padding: 10px 15px; border-radius: 20px; border: 1px solid rgba(176, 141, 133, 0.15); }
         .month-nav-btn { background: none; border: none; font-size: 1.2rem; color: var(--accent); cursor: pointer; padding: 5px 10px; }
         .month-nav-btn:active { transform: scale(0.9); }
         .current-cycle-display { text-align: center; font-weight: 600; font-size: 0.95rem; color: var(--text-primary); display: flex; flex-direction: column; }
         .current-cycle-dates { font-size: 0.75rem; color: var(--text-secondary); font-weight: 400; margin-top: 2px; }
 
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        .stat-box { background: #faf5ef; padding: 16px 14px; border-radius: 18px; text-align: center; border: 1px solid rgba(184,135,107,0.08); }
+        .stat-box { background: var(--bg-color); padding: 15px; border-radius: 12px; text-align: center; }
         .stat-label { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px; }
         .stat-value { font-size: 1.2rem; font-weight: 600; font-family: 'Montserrat', sans-serif; }
         .income { color: var(--text-primary); }
@@ -92,14 +86,14 @@
 
         .form-group { margin-bottom: 15px; text-align: left; position: relative;}
         label { display: block; font-size: 0.85rem; margin-bottom: 5px; font-weight: 600; color: var(--text-primary); }
-        input, select { width: 100%; padding: 13px 14px; border: 1px solid rgba(92,75,66,0.08); border-radius: 16px; font-size: 1rem; background: var(--input-bg); outline: none; color: var(--text-primary); appearance: none; -webkit-appearance: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.65); }
-        input:focus, select:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(184,135,107,0.12); }
+        input, select { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 10px; font-size: 1rem; background: var(--bg-color); outline: none; color: var(--text-primary); appearance: none; -webkit-appearance: none; }
+        input:focus, select:focus { border-color: var(--accent); background: #fff; }
         input:read-only { background: #f5f5f5; color: #888; cursor: not-allowed; }
         optgroup { font-weight: 700; color: var(--accent); }
 
-        .btn { width: 100%; padding: 15px 18px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-deep) 100%); color: #fff; font-weight: 700; font-size: 0.98rem; cursor: pointer; transition: 0.3s; margin-top: 10px; box-shadow: 0 10px 18px rgba(92,75,66,0.16); display: block; text-align: center; text-decoration: none; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 50px; background: var(--text-primary); color: #fff; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.3s; margin-top: 10px; box-shadow: 0 4px 10px rgba(90,77,65,0.2); display: block; text-align: center; text-decoration: none; }
         .btn:active { transform: scale(0.98); }
-        .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent-deep); margin-top: 10px; box-shadow: none; border-radius: 16px; padding: 12px 14px;}
+        .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); margin-top: 10px; box-shadow: none; border-radius: 10px; padding: 12px;}
         .btn-tool { background: #546e7a; margin-bottom: 20px; }
         .btn-cancel { background: #999; margin-top: 10px; }
 
@@ -138,13 +132,10 @@
         .btn-add-detail { display: inline-block; font-size: 0.8rem; color: var(--accent); cursor: pointer; margin-top: 5px; font-weight: 600; }
         .btn-toggle-detail { position: absolute; right: 0; top: 0; font-size: 0.8rem; color: var(--accent); cursor: pointer; background: #fff; padding: 2px 8px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255,253,249,0.96); backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 12px 0 25px; border-top: 1px solid rgba(92,75,66,0.06); box-shadow: 0 -6px 18px rgba(0,0,0,0.04); z-index: 100; }
-        .nav-item { text-align: center; color: var(--text-secondary); cursor: pointer; font-size: 0.72rem; flex: 1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; line-height:1.1; }
-        .nav-item i { display: block; font-size: 1.3rem; margin-bottom: 2px; }
-        .nav-label { font-weight: 700; color: inherit; }
-        .nav-sub { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.02em; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; padding: 12px 0 25px; border-top: 1px solid #eee; box-shadow: 0 -5px 15px rgba(0,0,0,0.03); z-index: 100; }
+        .nav-item { text-align: center; color: var(--text-secondary); cursor: pointer; font-size: 0.75rem; flex: 1; }
+        .nav-item i { display: block; font-size: 1.3rem; margin-bottom: 4px; }
         .nav-item.active { color: var(--accent); font-weight: 600; }
-        .nav-item.active .nav-sub { color: var(--accent); opacity: 0.85; }
         .chart-wrapper { position: relative; height: 220px; width: 100%; display: flex; justify-content: center; margin-bottom: 15px;}
         .hidden { display: none !important; }
 
@@ -257,15 +248,10 @@
 
     <header>
         <h1>Bear.saving</h1>
-        <div style="font-size:0.78rem; color:var(--text-secondary); margin-top:4px;">不只是財務工具,這裡是一個接住你財務焦慮的地方</div>
+        <div style="font-size:0.8rem; color:var(--text-secondary);">Financial Cockpit v5.1 (Smart Export)</div>
     </header>
 
     <div id="page-dash" class="page active">
-        <div class="page-intro">
-            <div class="section-kicker"><i class="fas fa-seedling"></i> 本期陪跑區</div>
-            <div class="page-intro-title">先把一定會花的留起來，再決定其他位置。</div>
-            <div class="page-intro-desc">這裡不用一次做很完美，而是讓妳每次打開都知道：現在站在哪、接下來先顧哪一塊。</div>
-        </div>
         <div class="dashboard-header">
             <button class="month-nav-btn" onclick="changeDashboardMonth(-1)"><i class="fas fa-chevron-left"></i></button>
             <div class="current-cycle-display">
@@ -274,10 +260,10 @@
             </div>
             <button class="month-nav-btn" onclick="changeDashboardMonth(1)"><i class="fas fa-chevron-right"></i></button>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom: 12px; padding-right: 5px; flex-wrap:wrap;"><span class="gentle-chip"><i class="fas fa-heart"></i> 先求有，再求好</span><div style="text-align:right; margin-left:auto;">
+        <div style="text-align: right; margin-bottom: 10px; padding-right: 5px;">
             <span onclick="togglePrivacyMode()" style="cursor: pointer; color: var(--text-secondary); font-size: 0.9rem; font-weight: 600; transition: 0.3s;" id="privacy-btn">
                 <i class="fas fa-eye" id="privacy-icon"></i> 隱私模式
-            </span></div>
+            </span>
         </div>
         
         <div class="stat-grid">
@@ -296,7 +282,7 @@
             <div class="backup-banner-top">
                 <div>
                     <div class="backup-banner-title"><i class="fas fa-shield-heart" style="color:var(--accent);"></i> 備份小提醒</div>
-                    <div class="backup-banner-desc" id="backup-reminder-text">這些數字是妳慢慢存下來的底氣。幫它留一份備份，比較安心。</div>
+                    <div class="backup-banner-desc" id="backup-reminder-text">這些數字不是流水帳，而是妳慢慢存下來的底氣。幫它留一份備份，比較安心。</div>
                 </div>
                 <span class="backup-chip" id="backup-reminder-chip">尚未手動備份</span>
             </div>
@@ -319,7 +305,7 @@
         </div>
 
         <div class="card">
-            <div class="card-title"><span>幫未來先留位置</span></div>
+            <div class="card-title"><span>年度預存金追蹤 (Sinking Funds)</span></div>
             <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:-5px; margin-bottom:10px;">點擊袋子可查看歷史存入與花費明細。</p>
             <div style="background: rgba(176,141,133,0.05); padding: 10px 12px; border-radius: 8px; font-size: 0.75rem; color: var(--text-primary); margin-bottom: 15px; border-left: 3px solid var(--accent); line-height: 1.5;">
                 💡 「理財小提醒」：存袋產生的活儲利息，請直接記作「收入」。當作宇宙發的獎金買杯拿鐵，或手動餵給慢慢熊加速達標吧！
@@ -359,20 +345,18 @@
                 </div>
             </div>
 
-            <button class="btn" style="background:#5a4d41;" onclick="switchPage('review')">📊 看看這個月有沒有撐住</button>
+            <button class="btn" style="background:#5a4d41;" onclick="switchPage('review')">📊 產生本期結算診斷報告</button>
         </div>
     </div>
 
     <div id="page-add" class="page">
         <div class="card">
-            <div class="card-title" id="add-page-title">先幫這筆錢留位置</div>
-            <div class="soft-note" id="add-page-helper" style="margin-bottom:15px;">不用一次記很多。先從你最確定的一筆開始，空白晚點補也沒關係。</div>
+            <div class="card-title" id="add-page-title">新增一筆紀錄</div>
             <div class="entry-mode-switch">
                 <button class="entry-mode-btn active" id="single-entry-btn" onclick="switchEntryMode('single')">單筆輸入</button>
                 <button class="entry-mode-btn" id="batch-entry-btn" onclick="switchEntryMode('batch')">月底補登模式</button>
             </div>
             <div class="batch-helper" id="entry-mode-helper">平常記一筆、存一筆。若妳先寫在紙本上，也可以切到「月底補登模式」一次補進系統。</div>
-            <div class="soft-note" style="margin-top:12px;">幫這個月的每一筆錢找位置。</div>
 
             <div id="single-entry-area">
             <div class="form-group"><label>日期</label><input type="date" id="input-date"></div>
@@ -407,7 +391,7 @@
             </div>
             <div class="form-group"><label>金額</label><input type="number" step="any" id="input-amount" placeholder="0" inputmode="decimal"></div>
             <div class="form-group"><label>備註 (選填)</label><input type="text" id="input-note" placeholder="例如：午餐、全聯..."></div>
-            <button class="btn" id="save-btn" onclick="saveTransaction()">先幫這筆錢留位置 <i class="fas fa-check"></i></button>
+            <button class="btn" id="save-btn" onclick="saveTransaction()">確認儲存 <i class="fas fa-check"></i></button>
             <button class="btn btn-cancel hidden" id="cancel-edit-btn" onclick="resetForm()">取消修改</button>
 
             <div class="multi-entry-wrap" id="multi-entry-wrap">
@@ -451,7 +435,7 @@
                 </div>
 
                 <div class="batch-helper">儲存前可先檢查分類是否正確。若某列「詳細分類」看不到想要的分類，可直接切回設定新增後再回來補登。</div>
-                <button type="button" id="batch-save-btn" class="btn">把這些都放進系統 <i class="fas fa-layer-group"></i></button>
+                <button type="button" id="batch-save-btn" class="btn">全部儲存 <i class="fas fa-layer-group"></i></button>
             </div>
         </div>
     </div>
@@ -472,7 +456,7 @@
                 <div class="chart-wrapper" style="height: 180px;"><canvas id="reviewPieChart"></canvas></div>
             </div>
         </div>
-        <div class="card"><div class="card-title">這個月的復盤提醒</div><div id="diagnostic-content"></div></div>
+        <div class="card"><div class="card-title">系統診斷結果</div><div id="diagnostic-content"></div></div>
     </div>
 
     <div id="page-shop" class="page">
@@ -492,11 +476,6 @@
     </div>
 
     <div id="page-networth" class="page">
-        <div class="page-intro">
-            <div class="section-kicker"><i class="fas fa-compass"></i> 我現在站在哪</div>
-            <div class="page-intro-title">盤點不是為了嚇自己，是為了看清楚下一步。</div>
-            <div class="page-intro-desc">有些數字看起來刺眼也沒關係。只要願意看見，之後每一次更新都會比原地不動更有底氣。</div>
-        </div>
         <div class="networth-hero">
             <div class="nw-label">目前總淨資產 (Net Worth)</div>
             <div class="nw-value" id="nw-display-total">$0</div>
@@ -506,12 +485,12 @@
             </div>
         </div>
         <div class="card">
-            <div class="card-title">底氣走勢</div>
+            <div class="card-title">淨資產成長曲線</div>
             <div class="chart-wrapper"><canvas id="networthChart"></canvas></div>
         </div>
         
         <div class="card">
-            <div class="card-title" id="nw-form-title">更新這個月的站位</div>
+            <div class="card-title" id="nw-form-title">更新本月盤點數據</div>
             <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0;">切換月份可載入歷史資料。可直接填總額，或展開填寫明細。</p>
             <div class="form-group"><label>盤點月份</label><input type="month" id="nw-input-month"></div>
             
@@ -542,7 +521,7 @@
                 <div id="nw-details-debt" class="nw-detail-box hidden"><div id="nw-list-debt"></div><span class="btn-add-detail" onclick="addNwDetailRow('debt')">+ 新增負債項目</span></div>
             </div>
 
-            <button class="btn" onclick="saveNetWorth()">存下這次盤點 <i class="fas fa-chart-line"></i></button>
+            <button class="btn" onclick="saveNetWorth()">儲存盤點結果 <i class="fas fa-chart-line"></i></button>
         </div>
 
         <div class="card">
@@ -562,11 +541,6 @@
     </div>
 
     <div id="page-settings" class="page">
-        <div class="page-intro">
-            <div class="section-kicker"><i class="fas fa-feather-pointed"></i> 系統語氣設定</div>
-            <div class="page-intro-title">不把功能堆滿，而是讓你每次回來都知道怎麼開始。</div>
-            <div class="page-intro-desc">設定頁是在替未來的自己整理路線：分類命名、預算配置、備份保護，都會決定這個系統是不是用得下去。</div>
-        </div>
         <div class="achievement-banner" onclick="switchPage('milestones')">
             <div>
                 <div style="font-weight:700; font-size:1.1rem; margin-bottom:2px;"><i class="fas fa-medal"></i> 底氣里程碑</div>
@@ -576,7 +550,7 @@
         </div>
 
         <div class="card">
-            <div class="card-title">系統節奏設定</div>
+            <div class="card-title">系統設定 (System)</div>
             <div class="form-group">
                 <label>每月帳單起始日 (發薪日結算)</label>
                 <div style="display:flex; align-items:center; gap:10px;">
@@ -587,7 +561,7 @@
         </div>
 
         <div class="card">
-            <div class="card-title">替每一筆錢命名與安排</div>
+            <div class="card-title">預算與目標設定 (Max: 15袋)</div>
             <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0;">* 點擊文字框可自訂專屬名稱。<br>* 若想刪除請點擊垃圾桶（刪光為0袋時，代表該大類不細分，可直接設定總預算）。</p>
             
             <div id="budget-settings-container"></div>
@@ -598,12 +572,12 @@
         </div>
 
         <div class="card">
-            <div class="card-title">回頭看：妳已經記下的每一步</div>
+            <div class="card-title">帳務明細 (依帳期排序)</div>
             <ul class="tx-list" id="full-tx-list"></ul>
         </div>
 
         <div class="card">
-            <div class="card-title">把底氣留一份備份</div>
+            <div class="card-title">資料備份與報表匯出</div>
             <div style="background: rgba(176,141,133,0.06); border:1px dashed rgba(176,141,133,0.35); border-radius:12px; padding:14px; margin-bottom:15px;">
                 <div style="font-size:0.9rem; color:var(--text-primary); font-weight:700; margin-bottom:8px;">🐻 備份守護模式</div>
                 <div style="font-size:0.8rem; color:var(--text-secondary); line-height:1.6; margin-bottom:12px;">
@@ -663,7 +637,6 @@
                     <option value="fixed">🏦 本息合一固定分期</option>
                     <option value="compound">📈 循環本金計息</option>
                     <option value="none">✨ 零利率</option>
-                    <option value="flexible">🤝 彈性還款（可多還）</option>
                 </select>
                 <div id="debt-type-hint" style="font-size:0.75rem; color:var(--text-secondary); line-height:1.4; padding:5px 8px; background:#f5f5f5; border-radius:6px; border-left:3px solid #ccc;">
                     (載入中...)
@@ -680,7 +653,7 @@
             </div>
 
             <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn" style="background:var(--danger); margin-top:0; flex:1;" onclick="saveDebt()">先存這個還款目標</button>
+                <button class="btn" style="background:var(--danger); margin-top:0; flex:1;" onclick="saveDebt()">儲存目標</button>
                 <button class="btn-outline" style="margin-top:0; flex:1;" onclick="closeDebtForm()">取消</button>
             </div>
             <div id="debt-delete-btn-container" style="text-align:center; margin-top:15px; display:none;"><span style="color:#999; font-size:0.8rem; text-decoration:underline; cursor:pointer;" onclick="deleteDebt()">刪除此目標</span></div>
@@ -747,26 +720,10 @@
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchPage('dash')" id="nav-dash">
-            <i class="fas fa-chart-pie"></i>
-            <div class="nav-label">儀表板</div>
-            <div class="nav-sub">佔位</div>
-        </div>
-        <div class="nav-item" onclick="switchPage('networth')" id="nav-networth">
-            <i class="fas fa-coins"></i>
-            <div class="nav-label">資產盤點</div>
-            <div class="nav-sub">底氣</div>
-        </div>
-        <div class="nav-item" onclick="openAddPage()" id="nav-add">
-            <i class="fas fa-plus-circle" style="font-size:1.6rem; color:var(--text-primary); transform:translateY(-2px);"></i>
-            <div class="nav-label">記帳</div>
-            <div class="nav-sub">留位置</div>
-        </div>
-        <div class="nav-item" onclick="switchPage('settings')" id="nav-settings">
-            <i class="fas fa-list-ul"></i>
-            <div class="nav-label">設定</div>
-            <div class="nav-sub">整理</div>
-        </div>
+        <div class="nav-item active" onclick="switchPage('dash')" id="nav-dash"><i class="fas fa-chart-pie"></i> 儀表板</div>
+        <div class="nav-item" onclick="switchPage('networth')" id="nav-networth"><i class="fas fa-coins"></i> 資產盤點</div>
+        <div class="nav-item" onclick="openAddPage()" id="nav-add"><i class="fas fa-plus-circle" style="font-size:1.6rem; color:var(--text-primary); transform:translateY(-2px);"></i> 記帳</div>
+        <div class="nav-item" onclick="switchPage('settings')" id="nav-settings"><i class="fas fa-list-ul"></i> 設定</div>
     </div>
 
     <script>
@@ -815,10 +772,10 @@
         let guideStep = 0;
         const guideSteps = [
             {
-                title: '第一步：先找到妳的節奏',
+                title: '第一步：先設定妳的發薪日',
                 content: `
-                    <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:10px;">第一步：先找到妳的節奏</div>
-                    <p>請先到「整理」頁，把每月帳單起始日設成妳的發薪日！讓系統跟上妳真正的生活節奏。</p>
+                    <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:10px;">第一步：先設定妳的發薪日</div>
+                    <p>請先到「設定」頁，把每月帳單起始日設成妳的發薪日。</p>
                     <ul style="padding-left:20px;">
                         <li>這樣系統才會按照妳真正的收入節奏跑。</li>
                         <li>如果妳是自由業或收入不固定，也可以自己訂一個固定發薪日。</li>
@@ -827,10 +784,10 @@
                 `
             },
             {
-                title: '第二步：幫每一筆錢命名',
+                title: '第二步：設定預算與分類',
                 content: `
-                    <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:10px;">第二步：幫每一筆錢命名</div>
-                    <p>前往「整理」頁，建立固定支出、變動支出、預存支出。先從最確定的開始，不用第一次就分很細。</p>
+                    <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:10px;">第二步：設定預算與分類</div>
+                    <p>前往「設定」頁，建立固定支出、變動支出、預存支出。</p>
                     <ul style="padding-left:20px;">
                         <li>不知道怎麼分，可以先看十袋分配邏輯。</li>
                         <li>所有分類請控制在 15 類內。</li>
@@ -842,22 +799,22 @@
                 `
             },
             {
-                title: '第三步：把每一筆錢放回位置',
+                title: '第三步：開始記帳',
                 content: `
-                    <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:10px;">第三步：把每一筆錢放回位置</div>
-                    <p>領薪日先輸入收入，花錢後再記進對應分類。除了抓錯，重點是讓妳知道現在還有多少空間。</p>
+                    <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:10px;">第三步：開始記帳</div>
+                    <p>領薪日先輸入收入，花錢後再記進對應分類。</p>
                     <ul style="padding-left:20px;">
                         <li>妳可以隨時回到儀表板，看每個項目花了多少、剩多少。</li>
-                        <li>讓妳知道錢流去哪裡，焦慮自然會消失。</li>
+                        <li>這不是要讓妳焦慮，而是讓妳知道錢流去哪裡。</li>
                         <li>衝動購物前，也可以用購物冷靜邏輯閘。</li>
                     </ul>
                 `
             },
             {
-                title: '第四步：每月回來看看自己站在哪',
+                title: '第四步：每月更新資產盤點',
                 content: `
-                    <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:10px;">第四步：每月回來看看自己站在哪</div>
-                    <p>每個月結束後，到「底氣」頁更新總資產和總負債。看清楚，不代表一切都要立刻解決；只是讓下一步變得更清楚。</p>
+                    <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:10px;">第四步：每月更新資產盤點</div>
+                    <p>每個月結束後，到「資產盤點」更新總資產和總負債。</p>
                     <ul style="padding-left:20px;">
                         <li>有負債就用慢慢熊推雪球，幫妳看還款進度。</li>
                         <li>也可以回到儀表板看結算診斷報告，或到設定頁匯出 Excel。</li>
@@ -936,7 +893,7 @@
         }
 
         function openAddPage() { resetForm(); switchPage('add'); switchEntryMode('single'); }
-        function resetForm() { editingId = null; document.getElementById('add-page-title').innerText = '先幫這筆錢留位置'; document.getElementById('save-btn').innerHTML = '先幫這筆錢留位置 <i class="fas fa-check"></i>'; document.getElementById('add-page-helper').innerText = '不用一次記很多。先從你最確定的一筆開始，空白晚點補也沒關係。'; document.getElementById('cancel-edit-btn').classList.add('hidden'); document.getElementById('input-date').valueAsDate = new Date(); document.getElementById('input-main-category').value = '支出-變動'; updateSubCategories(); document.getElementById('input-amount').value = ''; document.getElementById('input-note').value = ''; document.getElementById('input-method').value = 'cash'; switchEntryMode('single'); document.getElementById('multi-entry-wrap').classList.remove('hidden'); initExtraEntryArea(); }
+        function resetForm() { editingId = null; document.getElementById('add-page-title').innerText = '新增一筆紀錄'; document.getElementById('save-btn').innerHTML = '確認儲存 <i class="fas fa-check"></i>'; document.getElementById('cancel-edit-btn').classList.add('hidden'); document.getElementById('input-date').valueAsDate = new Date(); document.getElementById('input-main-category').value = '支出-變動'; updateSubCategories(); document.getElementById('input-amount').value = ''; document.getElementById('input-note').value = ''; document.getElementById('input-method').value = 'cash'; switchEntryMode('single'); document.getElementById('multi-entry-wrap').classList.remove('hidden'); initExtraEntryArea(); }
         function sortTransactions() { transactions.sort((a, b) => { const dateDiff = new Date(b.date) - new Date(a.date); if (dateDiff !== 0) return dateDiff; return b.id - a.id; }); }
 
 
@@ -1275,7 +1232,7 @@
             } else { document.getElementById('input-note').value = tx.note; }
 
             document.getElementById('input-amount').value = tx.amount; document.getElementById('input-method').value = tx.method || 'cash';
-            document.getElementById('add-page-title').innerText = '調整這筆位置'; document.getElementById('save-btn').innerHTML = '存下這次調整 <i class="fas fa-save"></i>'; document.getElementById('add-page-helper').innerText = '把這筆錢放回更適合的位置。'; document.getElementById('cancel-edit-btn').classList.remove('hidden'); switchPage('add'); document.getElementById('multi-entry-wrap').classList.add('hidden'); switchEntryMode('single');
+            document.getElementById('add-page-title').innerText = '編輯紀錄'; document.getElementById('save-btn').innerHTML = '確認修改 <i class="fas fa-save"></i>'; document.getElementById('cancel-edit-btn').classList.remove('hidden'); switchPage('add'); document.getElementById('multi-entry-wrap').classList.add('hidden'); switchEntryMode('single');
         }
 
         function deleteTx(id) { 
@@ -2033,7 +1990,7 @@ function renderBudgetBars(envExp, masterSpent) {
                 rateGroup.style.display = 'block';
                 rateLabel.innerText = '年利率 (%)';
                 hintBox.style.display = 'block';
-                hintBox.innerHTML = '💡 <b>本息合一</b>：銀行已將利息算入每月固定還款。系統會依照<b>剩餘本金＋年利率＋月付金</b>推估剩餘期數，<b>不會重複扣除利息</b>。';
+                hintBox.innerHTML = '💡 <b>本息合一</b>：銀行已將利息算入總額並固定每月還款。系統將進行純粹倒數，<b>不會重複扣除利息</b>。';
                 hintBox.style.borderLeftColor = '#968c83';
             } else if (type === 'compound') {
                 rateGroup.style.display = 'block';
@@ -2041,11 +1998,6 @@ function renderBudgetBars(envExp, masterSpent) {
                 hintBox.style.display = 'block';
                 hintBox.innerHTML = '💡 <b>循環計息</b>：適用於房貸或信用卡循。系統會在妳每次打卡時，<b>自動以複利計算並扣除當月利息</b>，精準推估剩餘期數。';
                 hintBox.style.borderLeftColor = 'var(--danger)';
-            } else if (type === 'flexible') {
-                rateGroup.style.display = 'none';
-                hintBox.style.display = 'block';
-                hintBox.innerHTML = '💡 <b>彈性還款</b>：適合家人借款、朋友借款或妳想有餘力時多還一點的情況。打卡時可以自己輸入本月實際還款金額，系統會依照妳設定的每月預設金額估算剩餘期數。';
-                hintBox.style.borderLeftColor = 'var(--info)';
             } else {
                 rateGroup.style.display = 'none';
                 hintBox.style.display = 'block';
@@ -2056,33 +2008,16 @@ function renderBudgetBars(envExp, masterSpent) {
 
         function calculateRemainingTerms(currentDebt, monthlyPayment, annualRate, type = 'fixed') {
             if (currentDebt <= 0) return 0;
-            if (monthlyPayment <= 0) return -1;
-
-            // 零利率 / 彈性還款：可直接用本金 / 每月預設還款
-            if (type === 'none' || type === 'flexible') {
+            if (monthlyPayment <= 0) return -1; 
+            
+            if (type === 'fixed' || type === 'none') {
                 return Math.ceil(currentDebt / monthlyPayment);
             }
 
-            // 本息合一固定分期：
-            // 月付金裡包含利息，不能直接用「剩餘本金 ÷ 月付金」，
-            // 否則剩餘期數會被低估。
-            if (type === 'fixed') {
-                if (!annualRate || annualRate <= 0) {
-                    return Math.ceil(currentDebt / monthlyPayment);
-                }
+            if (!annualRate || annualRate <= 0) return Math.ceil(currentDebt / monthlyPayment); 
 
-                const r = (annualRate / 100) / 12;
-                if (monthlyPayment <= currentDebt * r) return -2;
-
-                const terms = -Math.log(1 - (currentDebt * r) / monthlyPayment) / Math.log(1 + r);
-                return Math.ceil(terms);
-            }
-
-            // 循環本金計息 / 其他需利息估算的情境
-            if (!annualRate || annualRate <= 0) return Math.ceil(currentDebt / monthlyPayment);
-
-            const r = (annualRate / 100) / 12;
-            if (monthlyPayment <= currentDebt * r) return -2;
+            const r = (annualRate / 100) / 12; 
+            if (monthlyPayment <= currentDebt * r) return -2; 
 
             const terms = -Math.log(1 - (currentDebt * r) / monthlyPayment) / Math.log(1 + r);
             return Math.ceil(terms);
@@ -2091,61 +2026,39 @@ function renderBudgetBars(envExp, masterSpent) {
         function markDebtPaid(index) {
             const debt = userDebts[index];
             if (!debt) return;
-
+            
             const currentMonthStr = `${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
             if (debt.lastPaidMonth === currentMonthStr) {
                 alert('這個月已經打卡還過款囉！慢慢熊感謝妳的努力！🐻‍❄️');
                 return;
             }
 
-            let actualPayment = debt.monthly;
-            let principalToDeduct = debt.monthly;
-
-            if (debt.calcType === 'flexible') {
-                const input = prompt(`請輸入「${debt.name}」本月實際還款金額：`, debt.monthly || '');
-                if (input === null) return;
-
-                actualPayment = parseFloat(input);
-                if (isNaN(actualPayment) || actualPayment <= 0) {
-                    alert('請輸入正確的還款金額！');
-                    return;
+            if(confirm(`確定要打卡本月還款 $${formatMoney(debt.monthly)} 嗎？\n(系統將自動扣除剩餘本金，若有設定利率會先扣利息)`)) {
+                let principalToDeduct = debt.monthly;
+                
+                if (debt.calcType === 'compound' && debt.rate && debt.rate > 0) {
+                    const monthlyRate = (debt.rate / 100) / 12;
+                    const interest = debt.current * monthlyRate;
+                    principalToDeduct = debt.monthly - interest;
+                    
+                    if (principalToDeduct <= 0) {
+                        alert('⚠️ 警告：妳的還款金額連利息都付不起！請提高每月還款金！');
+                        return;
+                    }
                 }
-
-                if (actualPayment > debt.current) actualPayment = debt.current;
-                principalToDeduct = actualPayment;
-
-                if (!confirm(`確定要記錄本月還款 $${formatMoney(actualPayment)} 嗎？`)) return;
-            } else {
-                if(!confirm(`確定要打卡本月還款 $${formatMoney(debt.monthly)} 嗎？
-(系統將自動扣除剩餘本金，若有設定利率會先扣利息)`)) {
-                    return;
+                
+                debt.current -= principalToDeduct;
+                if (debt.current < 0) debt.current = 0;
+                
+                debt.lastPaidMonth = currentMonthStr;
+                
+                localStorage.setItem('bear_debts_tracker', JSON.stringify(userDebts));
+                writeAutoBackup('debt-paid');
+                
+                renderDebtTracker();
+                if(document.getElementById('checklist-modal').classList.contains('show')){
+                    renderChecklist();
                 }
-            }
-
-            if (debt.calcType === 'compound' && debt.rate && debt.rate > 0) {
-                const monthlyRate = (debt.rate / 100) / 12;
-                const interest = debt.current * monthlyRate;
-                principalToDeduct = debt.monthly - interest;
-
-                if (principalToDeduct <= 0) {
-                    alert('⚠️ 警告：妳的還款金額連利息都付不起！請提高每月還款金！');
-                    return;
-                }
-                actualPayment = debt.monthly;
-            }
-
-            debt.current -= principalToDeduct;
-            if (debt.current < 0) debt.current = 0;
-
-            debt.lastPaidMonth = currentMonthStr;
-            debt.lastPaidAmount = actualPayment;
-
-            localStorage.setItem('bear_debts_tracker', JSON.stringify(userDebts));
-            writeAutoBackup('debt-paid');
-
-            renderDebtTracker();
-            if(document.getElementById('checklist-modal').classList.contains('show')){
-                renderChecklist();
             }
         }
 
@@ -2199,21 +2112,17 @@ function renderBudgetBars(envExp, masterSpent) {
                     rateBadgeText = `<span style="background:rgba(150,140,131,0.1); color:var(--text-secondary); padding:2px 8px; border-radius:10px; font-size:0.75rem; margin-left:8px;">內含利息 ${debt.rate}%</span>`;
                 } else if (debt.calcType === 'none') {
                     rateBadgeText = `<span style="background:rgba(129,199,132,0.1); color:var(--success); padding:2px 8px; border-radius:10px; font-size:0.75rem; margin-left:8px;">0 利率</span>`;
-                } else if (debt.calcType === 'flexible') {
-                    rateBadgeText = `<span style="background:rgba(125,168,199,0.12); color:var(--info); padding:2px 8px; border-radius:10px; font-size:0.75rem; margin-left:8px;">彈性還款</span>`;
                 }
 
-                let termsDisplay = debt.totalTerms ? `<div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:5px;">剩餘期數：<b style="color:var(--text-primary);">${remainingTerms > 0 ? remainingTerms : '-'}</b> 期 / 總期數：${debt.totalTerms} 期${debt.calcType === 'flexible' ? ' <span style="font-size:0.72rem; color:var(--info);">(依預設月付估算)</span>' : ''}</div>` : '';
+                let termsDisplay = debt.totalTerms ? `<div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:5px;">剩餘期數：<b style="color:var(--text-primary);">${remainingTerms > 0 ? remainingTerms : '-'}</b> 期 / 總期數：${debt.totalTerms} 期</div>` : '';
                 let textClass = progress > 15 ? 'snowball-text' : 'snowball-text snowball-text-dark';
 
                 let repayBtnHtml = '';
                 if (!isDone && remainingTerms !== -1 && remainingTerms !== -2) {
                     if (debt.lastPaidMonth === currentMonthStr) {
-                        repayBtnHtml = `<span style="color:var(--success); font-weight:bold; font-size:0.85rem;"><i class="fas fa-check-circle"></i> 本月已打卡${debt.calcType === 'flexible' && debt.lastPaidAmount ? ` $${formatMoney(debt.lastPaidAmount)}` : ''}</span>`;
+                        repayBtnHtml = `<span style="color:var(--success); font-weight:bold; font-size:0.85rem;"><i class="fas fa-check-circle"></i> 本月已打卡</span>`;
                     } else {
-                        repayBtnHtml = debt.calcType === 'flexible'
-                            ? `<button class="btn-repay" onclick="markDebtPaid(${index})"><i class="fas fa-pen"></i> 輸入本月還款</button>`
-                            : `<button class="btn-repay" onclick="markDebtPaid(${index})"><i class="fas fa-hand-holding-usd"></i> 點擊打卡</button>`;
+                        repayBtnHtml = `<button class="btn-repay" onclick="markDebtPaid(${index})"><i class="fas fa-hand-holding-usd"></i> 點擊打卡</button>`;
                     }
                 }
 
@@ -2273,11 +2182,9 @@ function renderBudgetBars(envExp, masterSpent) {
                             } else if (i === paidTerms + 1) {
                                 const currentMonthStr = `${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
                                 if (debt.lastPaidMonth === currentMonthStr) {
-                                    rowsHtml += `<div class="term-row" style="background:#f4fbf5;"><span style="font-weight:600; color:var(--text-primary);">第 ${i} 期 (本期)</span><span style="color:var(--success); font-size:0.8rem; font-weight:600;"><i class="fas fa-check-circle"></i> 本月已打卡${debt.calcType === 'flexible' && debt.lastPaidAmount ? ` $${formatMoney(debt.lastPaidAmount)}` : ''}</span></div>`;
+                                    rowsHtml += `<div class="term-row" style="background:#f4fbf5;"><span style="font-weight:600; color:var(--text-primary);">第 ${i} 期 (本期)</span><span style="color:var(--success); font-size:0.8rem; font-weight:600;"><i class="fas fa-check-circle"></i> 本月已打卡</span></div>`;
                                 } else {
-                                    rowsHtml += debt.calcType === 'flexible'
-                                        ? `<div class="term-row" style="background:#fffaf0; border-color:var(--warning);"><span style="font-weight:600; color:var(--text-primary);">第 ${i} 期 (本期應繳)</span><button class="term-status active-btn" onclick="markDebtPaid(${index})">輸入還款</button></div>`
-                                        : `<div class="term-row" style="background:#fffaf0; border-color:var(--warning);"><span style="font-weight:600; color:var(--text-primary);">第 ${i} 期 (本期應繳)</span><button class="term-status active-btn" onclick="markDebtPaid(${index})">打卡 $${formatMoney(debt.monthly)}</button></div>`;
+                                    rowsHtml += `<div class="term-row" style="background:#fffaf0; border-color:var(--warning);"><span style="font-weight:600; color:var(--text-primary);">第 ${i} 期 (本期應繳)</span><button class="term-status active-btn" onclick="markDebtPaid(${index})">打卡 $${formatMoney(debt.monthly)}</button></div>`;
                                 }
                             } else {
                                 rowsHtml += `<div class="term-row"><span class="term-status locked">第 ${i} 期</span><span class="term-status locked"><i class="fas fa-lock"></i> 未到期</span></div>`;
@@ -2361,22 +2268,18 @@ function renderBudgetBars(envExp, masterSpent) {
             const rate = parseFloat(document.getElementById('debt-rate').value) || 0; 
             const totalTerms = parseInt(document.getElementById('debt-total-terms').value) || 0; 
             const payDate = parseInt(document.getElementById('debt-pay-date').value) || ''; 
-
+            
             if(!name || initial <= 0 || monthly <= 0) { 
                 alert('請輸入完整資訊（含初始總額與每月還款）！'); return; 
             } 
-
+            
             if (editingDebtId !== null) { 
-                const oldDebt = userDebts[editingDebtId];
-                userDebts[editingDebtId] = { 
-                    name, initial, current, monthly, rate, totalTerms, payDate, calcType,
-                    lastPaidMonth: oldDebt.lastPaidMonth || '',
-                    lastPaidAmount: oldDebt.lastPaidAmount || null
-                }; 
+                const oldLastPaidMonth = userDebts[editingDebtId].lastPaidMonth;
+                userDebts[editingDebtId] = { name, initial, current, monthly, rate, totalTerms, payDate, calcType, lastPaidMonth: oldLastPaidMonth }; 
             } else { 
-                userDebts.push({ name, initial, current, monthly, rate, totalTerms, payDate, calcType, lastPaidMonth: '', lastPaidAmount: null }); 
+                userDebts.push({ name, initial, current, monthly, rate, totalTerms, payDate, calcType, lastPaidMonth: '' }); 
             } 
-
+            
             localStorage.setItem('bear_debts_tracker', JSON.stringify(userDebts)); 
             writeAutoBackup('save-debt');
             closeDebtForm(); 
@@ -2513,21 +2416,7 @@ function exportToExcel() {
                 html += '</table>';
             }
 
-            html += '
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  const SUPABASE_URL = 'https://hpgzgbxvszcoftfwrccw.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_u4tYPXHYZmcmHmG51iIJUA__WZW5sky';
-
-  const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
-
-  console.log('✅ Supabase 已連線');
-</script>
-
-</body></html>';
+            html += '</body></html>';
 
             const blob = new Blob([html], {type: 'application/vnd.ms-excel'});
             const link = document.createElement("a");
@@ -2703,7 +2592,7 @@ function exportToExcel() {
                 banner.classList.remove('hidden');
                 if (!lastManual) {
                     bannerChip.innerText = '尚未手動備份';
-                    bannerText.innerText = '這些數字是妳慢慢累積出來的底氣。建議先下載一份備份，會更安心。';
+                    bannerText.innerText = '這些數字不是流水帳，而是妳慢慢累積出來的底氣。建議先下載一份備份，會更安心。';
                 } else {
                     bannerChip.innerText = `上次備份 ${daysSinceManual} 天前`;
                     bannerText.innerText = '妳已經持續使用一陣子了，現在很適合再留一份新備份，避免瀏覽器清理後資料一起消失。';
