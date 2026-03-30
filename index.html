@@ -3649,7 +3649,7 @@ function getSharedBudgetSummary(cycleTx) {
             }
         }
 
-        function saveMasterBudget(mainCat) { const val = parseFloat(document.getElementById(`master-budget-${mainCat}`).value) || 0; masterBudgets[mainCat] = val; localStorage.setItem('bear_master_budgets', JSON.stringify(masterBudgets)); }
+        function saveMasterBudget(mainCat) { const val = parseFloat(document.getElementById(`master-budget-${mainCat}`).value) || 0; masterBudgets[mainCat] = val; localStorage.setItem('bear_master_budgets', JSON.stringify(masterBudgets)); writeAutoBackup('save-master-budget'); renderDashboard(); }
 
         function addNewEnvelope(mainCat) {
             const totalCount = getTotalEnvelopesCount();
@@ -5470,7 +5470,9 @@ function exportToExcel() {
                 localStorage.setItem('bear_master_budgets', JSON.stringify(masterBudgets));
                 localStorage.setItem('bear_monthly_saved_plans', JSON.stringify(monthlySavedPlans));
                 localStorage.setItem('bear_shared_budget_settings', JSON.stringify(sharedBudgetSettings));
+                localStorage.setItem('bear_shared_deposits', JSON.stringify(sharedDeposits));
                 initSharedBudgetForm();
+                writeAutoBackup('restore-auto-backup');
 
                 alert('已從最近一次自動快照還原！');
                 renderDashboard();
@@ -5519,6 +5521,7 @@ function exportToExcel() {
                         masterBudgets = data.masterBudgets || { '固定支出': 0, '變動支出': 0, '預存支出': 0 }; 
                         monthlySavedPlans = data.monthlySavedPlans || {}; 
                         sharedBudgetSettings = data.sharedBudgetSettings || { enabled: false, partnerName: '另一半', monthlyBudget: 0, splitMode: 'half', myRatio: 50 };
+                        sharedDeposits = data.sharedDeposits || [];
                     } 
                     localStorage.setItem('bear_transactions', JSON.stringify(transactions)); 
                     localStorage.setItem('bear_budgets', JSON.stringify(budgets)); 
