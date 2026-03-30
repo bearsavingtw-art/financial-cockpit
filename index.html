@@ -239,6 +239,11 @@
         .sync-modal-actions .btn { margin-top:0; }
         .sync-modal-note { font-size:0.75rem; color:var(--text-secondary); line-height:1.6; margin-top:10px; }
         .sync-mini-status { margin-top:8px; font-size:0.76rem; color:var(--accent-deep); }
+        .app-toast { position: fixed; left: 50%; bottom: 112px; transform: translateX(-50%) translateY(16px); min-width: min(92vw, 360px); max-width: min(92vw, 360px); background: rgba(60,49,42,0.96); color: #fff; padding: 14px 16px; border-radius: 18px; box-shadow: 0 16px 30px rgba(0,0,0,0.18); z-index: 2600; opacity: 0; pointer-events: none; transition: 0.28s ease; font-size: 0.86rem; line-height: 1.6; }
+        .app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .app-toast.ok { background: rgba(58,83,64,0.96); }
+        .app-toast.warn { background: rgba(138,96,53,0.96); }
+        .app-toast.error { background: rgba(121,68,63,0.96); }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: 0.3s; }
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
         .modal-content { background: #fff; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; max-height: 85vh; overflow-y: auto; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transform: translateY(20px); transition: 0.3s; text-align: left; }
@@ -1185,6 +1190,8 @@
         </div>
     </div>
 
+    <div id="app-toast" class="app-toast"></div>
+
     <script>
         function formatMoney(amount) {
             if (amount == null || isNaN(amount)) return '0';
@@ -1415,6 +1422,11 @@
         let suppressCloudAutoSave = false;
         let lastCloudSnapshotMeta = null;
         let syncConflictState = null;
+        let cloudRealtimeChannel = null;
+        let cloudRefreshInterval = null;
+        let cloudSessionSubscription = null;
+        let lastAppliedCloudFingerprint = '';
+        let lastAppliedCloudUpdatedAt = '';
 
         function getLocalUpdatedAt() {
             return localStorage.getItem('bear_local_updated_at') || '';
@@ -1441,6 +1453,20 @@
                 minute: '2-digit',
                 hour12: false
             }).format(d).replace(/\//g, '/');
+        }
+
+        let toastTimer = null;
+
+        function showAppToast(message, type = 'ok', duration = 2200) {
+            const toast = document.getElementById('app-toast');
+            if (!toast) return;
+            clearTimeout(toastTimer);
+            toast.textContent = message;
+            toast.className = `app-toast ${type}`;
+            requestAnimationFrame(() => toast.classList.add('show'));
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
         }
 
         function stableStringify(value) {
@@ -1486,7 +1512,7 @@
                 } else if (lastCloudSnapshotMeta && lastCloudSnapshotMeta.isLoggedIn) {
                     addBadge.textContent = '雲端已連線';
                     addBadge.className = 'status-badge cloud';
-                    addDesc.textContent = '這頁先專心記帳，系統會先保留本機變更，並在登入狀態下自動同步到雲端。';
+                    addDesc.textContent = '按下儲存後，這筆記帳會直接上傳到雲端，其他裝置也會自動更新到最新版本。';
                 } else {
                     addBadge.textContent = '本機中';
                     addBadge.className = 'status-badge local';
@@ -1679,10 +1705,104 @@
             return user;
         }
 
+        function stopCloudRealtimeSync() {
+            if (cloudRefreshInterval) {
+                clearInterval(cloudRefreshInterval);
+                cloudRefreshInterval = null;
+            }
+            if (cloudRealtimeChannel) {
+                try { supabaseClient.removeChannel(cloudRealtimeChannel); } catch (err) { console.error('remove realtime channel error:', err); }
+                cloudRealtimeChannel = null;
+            }
+        }
+
+        async function applyIncomingCloudSnapshot(row, source = 'remote') {
+            const payload = row?.data_json;
+            if (!payload) return false;
+            const cloudMeta = payload._syncMeta || {};
+            const cloudUpdatedAt = cloudMeta.localUpdatedAt || row.updated_at || '';
+            const incomingFingerprint = cloudMeta.fingerprint || buildStateFingerprint(payload);
+            const localFingerprint = getLocalStateFingerprint();
+            const localUpdatedAt = getLocalUpdatedAt();
+            const localTs = localUpdatedAt ? new Date(localUpdatedAt).getTime() : 0;
+            const cloudTs = cloudUpdatedAt ? new Date(cloudUpdatedAt).getTime() : 0;
+            const sameAsLocal = incomingFingerprint === localFingerprint;
+            const alreadyApplied = !!(incomingFingerprint && incomingFingerprint === lastAppliedCloudFingerprint && cloudUpdatedAt && cloudUpdatedAt === lastAppliedCloudUpdatedAt);
+
+            lastCloudSnapshotMeta = {
+                updatedAt: cloudUpdatedAt || row.updated_at || '',
+                email: (lastCloudSnapshotMeta && lastCloudSnapshotMeta.email) ? lastCloudSnapshotMeta.email : '',
+                isLoggedIn: true,
+                hasConflict: false
+            };
+            renderSyncHints();
+
+            if (sameAsLocal || alreadyApplied) return false;
+            if (localTs && cloudTs && cloudTs < localTs) return false;
+
+            applyAppState(payload);
+            if (cloudUpdatedAt) localStorage.setItem('bear_local_updated_at', cloudUpdatedAt);
+            renderAllAfterCloudLoad();
+            lastAppliedCloudFingerprint = incomingFingerprint;
+            lastAppliedCloudUpdatedAt = cloudUpdatedAt || row.updated_at || '';
+            if (source !== 'init') {
+                updateCloudAuthStatus({ type: 'ok', badge: '已更新', desc: `偵測到其他裝置的新版本，已自動同步到這台裝置。上一版時間：${formatDateTimeDisplay(lastAppliedCloudUpdatedAt)}。` });
+                showAppToast('已自動同步其他裝置的最新版本', 'ok');
+            }
+            return true;
+        }
+
+        async function refreshCloudSnapshotInBackground(source = 'background') {
+            const user = await getCurrentUser();
+            if (!user) return false;
+            const { data, error } = await supabaseClient
+                .from('user_snapshots')
+                .select('*')
+                .eq('user_id', user.id)
+                .maybeSingle();
+            if (error) {
+                console.error('refreshCloudSnapshotInBackground error:', error);
+                return false;
+            }
+            if (!data || !data.data_json) return false;
+            lastCloudSnapshotMeta = { updatedAt: data.updated_at || '', email: user.email, isLoggedIn: true, hasConflict: false };
+            renderSyncHints();
+            return await applyIncomingCloudSnapshot(data, source);
+        }
+
+        async function startCloudRealtimeSync(user) {
+            if (!user) return;
+            stopCloudRealtimeSync();
+            lastCloudSnapshotMeta = { ...(lastCloudSnapshotMeta || {}), email: user.email, isLoggedIn: true, hasConflict: false };
+            const channelName = `bear-sync-${user.id}`;
+            cloudRealtimeChannel = supabaseClient
+                .channel(channelName)
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'user_snapshots',
+                    filter: `user_id=eq.${user.id}`
+                }, async (payload) => {
+                    const row = payload?.new;
+                    if (!row || !row.data_json) return;
+                    lastCloudSnapshotMeta = { updatedAt: row.updated_at || '', email: user.email, isLoggedIn: true, hasConflict: false };
+                    renderSyncHints();
+                    await applyIncomingCloudSnapshot(row, 'realtime');
+                });
+            try {
+                await cloudRealtimeChannel.subscribe();
+            } catch (err) {
+                console.error('realtime subscribe error:', err);
+            }
+            cloudRefreshInterval = setInterval(() => {
+                refreshCloudSnapshotInBackground('poll').catch(err => console.error('cloud poll error:', err));
+            }, 15000);
+        }
+
         async function saveToCloud(reason = 'manual', options = {}) {
             const user = await getCurrentUser();
             if (!user) return false;
-            const { force = false, silent = false } = options;
+            const { force = false, silent = false, skipConflictCheck = true } = options;
             const { data: remoteRow, error: readError } = await supabaseClient
                 .from('user_snapshots')
                 .select('*')
@@ -1695,13 +1815,8 @@
             }
             if (remoteRow?.data_json) {
                 const compare = compareLocalAndCloud(remoteRow);
-                lastCloudSnapshotMeta = { updatedAt: compare.cloudUpdatedAt || remoteRow.updated_at || '', email: user.email, isLoggedIn: true, hasConflict: compare.hasConflict };
+                lastCloudSnapshotMeta = { updatedAt: compare.cloudUpdatedAt || remoteRow.updated_at || '', email: user.email, isLoggedIn: true, hasConflict: false };
                 renderSyncHints();
-                if (compare.hasConflict && !force) {
-                    updateCloudAuthStatus({ type: 'warn', badge: '發現差異', desc: `本機是 ${formatDateTimeDisplay(compare.localUpdatedAt)}，雲端是 ${formatDateTimeDisplay(compare.cloudUpdatedAt)}。先確認要保留哪一份。` });
-                    if (!silent) openSyncConflictModal(compare, 'save');
-                    return 'conflict';
-                }
             }
             const payload = collectAppState();
             const nowIso = new Date().toISOString();
@@ -1711,6 +1826,8 @@
                 fingerprint: buildStateFingerprint(payload),
                 reason
             };
+            lastAppliedCloudFingerprint = payload._syncMeta.fingerprint || '';
+            lastAppliedCloudUpdatedAt = nowIso;
             const { error } = await supabaseClient
                 .from('user_snapshots')
                 .upsert({
@@ -1725,7 +1842,7 @@
                 return false;
             }
             lastCloudSnapshotMeta = { updatedAt: nowIso, email: user.email, isLoggedIn: true, hasConflict: false };
-            updateCloudAuthStatus({ type: 'ok', badge: '已同步', desc: `已登入 ${user.email}，目前這台裝置的資料已同步到雲端。` });
+            updateCloudAuthStatus({ type: 'ok', badge: '已同步', desc: `已登入 ${user.email}，目前最新版本已同步到雲端。` });
             renderSyncHints();
             return true;
         }
@@ -1733,7 +1850,7 @@
         async function loadFromCloud(options = {}) {
             const user = await getCurrentUser();
             if (!user) return false;
-            const { force = false, silent = false } = options;
+            const { force = false, silent = false, skipConflictCheck = true } = options;
             const { data, error } = await supabaseClient
                 .from('user_snapshots')
                 .select('*')
@@ -1770,6 +1887,8 @@
             applyAppState(data.data_json);
             if (compare.cloudUpdatedAt) localStorage.setItem('bear_local_updated_at', compare.cloudUpdatedAt);
             renderAllAfterCloudLoad();
+            lastAppliedCloudFingerprint = compare.cloudFingerprint || buildStateFingerprint(data.data_json || {});
+            lastAppliedCloudUpdatedAt = compare.cloudUpdatedAt || data.updated_at || '';
             lastCloudSnapshotMeta = { updatedAt: compare.cloudUpdatedAt || data.updated_at || '', email: user.email, isLoggedIn: true, hasConflict: false };
             updateCloudAuthStatus({ type: 'ok', badge: '已載入', desc: `已登入 ${user.email}，雲端資料已載入到這台裝置。` });
             renderSyncHints();
@@ -1804,7 +1923,7 @@
                 return;
             }
             lastCloudSnapshotMeta = { ...(lastCloudSnapshotMeta || {}), email: user.email, isLoggedIn: true };
-            updateCloudAuthStatus({ type: 'neutral', badge: '已登入', desc: `已登入 ${user.email}，可以手動同步或載入雲端資料。` });
+            updateCloudAuthStatus({ type: 'neutral', badge: '已登入', desc: `已登入 ${user.email}，按下儲存後會自動上傳，其他裝置也會自動更新到最新版本。` });
         }
 
         async function handleCloudSignUp() {
@@ -1835,13 +1954,14 @@
                 alert('登入失敗：' + error.message);
                 return;
             }
-            await ensureProfile();
+            const user = await ensureProfile();
             const loadResult = await loadFromCloud({ silent: true });
+            await startCloudRealtimeSync(user);
             await refreshCloudAuthStatus();
             if (loadResult === 'conflict') {
                 updateCloudAuthStatus({ type: 'warn', badge: '登入成功', desc: '已登入，但本機和雲端不是同一份資料，請先選擇要保留哪一份。' });
             } else {
-                alert('登入成功，雲端資料已準備好。');
+                showAppToast('登入成功，已開始自動同步最新版本。', 'ok');
             }
         }
 
@@ -1852,7 +1972,7 @@
                 return;
             }
             const ok = await saveToCloud('manual-button');
-            if (ok === true) alert('已把目前資料同步到雲端。');
+            if (ok === true) showAppToast('已把目前資料同步到雲端。', 'ok');
         }
 
         async function handleCloudLoadNow() {
@@ -1872,6 +1992,9 @@
                 alert('登出失敗：' + error.message);
                 return;
             }
+            stopCloudRealtimeSync();
+            lastAppliedCloudFingerprint = '';
+            lastAppliedCloudUpdatedAt = '';
             lastCloudSnapshotMeta = { updatedAt: '', email: '', isLoggedIn: false, hasConflict: false };
             updateCloudAuthStatus({ type: 'neutral', badge: '已登出', desc: '已登出，目前資料只留在這台裝置。' });
             alert('已登出。');
@@ -1892,14 +2015,44 @@
             const { data } = await supabaseClient.auth.getSession();
             if (data && data.session) {
                 try {
-                    await ensureProfile();
+                    const user = await ensureProfile();
                     await loadFromCloud({ silent: true });
+                    await startCloudRealtimeSync(user);
+                    await refreshCloudSnapshotInBackground('init');
                 } catch (err) {
                     console.error('auto cloud init error:', err);
                 }
                 await refreshCloudAuthStatus();
                 renderSyncHints();
             }
+            if (!cloudSessionSubscription) {
+                const { data: authListener } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+                    if (session && session.user) {
+                        try {
+                            await ensureProfile();
+                            await startCloudRealtimeSync(session.user);
+                            await refreshCloudSnapshotInBackground('auth');
+                        } catch (err) {
+                            console.error('auth sync start error:', err);
+                        }
+                        await refreshCloudAuthStatus();
+                    } else {
+                        stopCloudRealtimeSync();
+                        lastAppliedCloudFingerprint = '';
+                        lastAppliedCloudUpdatedAt = '';
+                        lastCloudSnapshotMeta = { updatedAt: '', email: '', isLoggedIn: false, hasConflict: false };
+                        updateCloudAuthStatus({ type: 'neutral', badge: '尚未登入', desc: '目前尚未登入，資料先留在這台裝置。' });
+                    }
+                    renderSyncHints();
+                });
+                cloudSessionSubscription = authListener?.subscription || null;
+            }
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) refreshCloudSnapshotInBackground('visible').catch(err => console.error('visibility sync error:', err));
+            });
+            window.addEventListener('focus', () => {
+                refreshCloudSnapshotInBackground('focus').catch(err => console.error('focus sync error:', err));
+            });
         });
 
 
@@ -3590,7 +3743,7 @@ function getSharedBudgetSummary(cycleTx) {
             return { date, type, category: subCat, mainCategory: saveMainCategory, amount, note, method: paymentMeta.method, paymentToolId: paymentMeta.paymentToolId, fundingCardId: paymentMeta.fundingCardId, transferLabel: paymentMeta.transferLabel, sharedMeta };
         }
 
-        function saveTransaction() {
+        async function saveTransaction() {
             const date = document.getElementById('input-date').value;
             const mainCatRaw = document.getElementById('input-main-category').value;
             const amount = parseFloat(document.getElementById('input-amount').value);
@@ -3616,6 +3769,11 @@ function getSharedBudgetSummary(cycleTx) {
                 sortTransactions();
                 localStorage.setItem('bear_transactions', JSON.stringify(transactions));
                 writeAutoBackup('transaction-edit');
+                let cloudSaved = false;
+                if (await getCurrentUser()) {
+                    const syncOk = await saveToCloud('transaction-edit', { silent: true, skipConflictCheck: true });
+                    cloudSaved = syncOk === true;
+                }
                 editingId = null;
                 resetForm();
                 renderRecentCombos();
@@ -3623,6 +3781,7 @@ function getSharedBudgetSummary(cycleTx) {
                 renderList();
                 renderSharedAccountPage();
                 switchPage('add');
+                showAppToast(cloudSaved ? '已把這筆記帳上傳到雲端' : '修改成功！', 'ok');
                 return;
             }
 
@@ -3668,13 +3827,19 @@ function getSharedBudgetSummary(cycleTx) {
             localStorage.setItem('bear_transactions', JSON.stringify(transactions));
             localStorage.setItem('bear_custom_envelopes', JSON.stringify(userEnvelopes));
             writeAutoBackup('transaction-multi');
-            alert(`成功儲存 ${entries.length} 筆紀錄！`);
+            let cloudSaved = false;
+            if (await getCurrentUser()) {
+                const syncOk = await saveToCloud('transaction-multi', { silent: true, skipConflictCheck: true });
+                cloudSaved = syncOk === true;
+            }
             resetForm();
             renderRecentCombos();
             renderDashboard();
             renderList();
             renderSharedAccountPage();
             switchPage('add');
+            if (cloudSaved) showAppToast(entries.length === 1 ? '已把這筆記帳上傳到雲端' : '已把這次記帳上傳到雲端', 'ok');
+            else showAppToast(`成功儲存 ${entries.length} 筆紀錄！`, 'ok');
         }
 
         function editTx(id) {
