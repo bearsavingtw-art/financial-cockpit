@@ -227,6 +227,18 @@
         .chart-wrapper { position: relative; height: 220px; width: 100%; display: flex; justify-content: center; margin-bottom: 15px;}
         .hidden { display: none !important; }
 
+        .sync-conflict-card { background: linear-gradient(180deg, #fffdf9 0%, #f8f1e8 100%); border: 1px solid rgba(184,135,107,0.18); border-radius: 22px; padding: 18px 16px; margin-top: 14px; }
+        .sync-conflict-title { display:flex; align-items:center; gap:10px; font-weight:700; color:var(--text-primary); margin-bottom:10px; }
+        .sync-conflict-icon { width:38px; height:38px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:rgba(217,122,114,0.12); color:var(--danger); font-size:1rem; }
+        .sync-conflict-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+        .sync-conflict-box { background:#fff; border:1px solid rgba(184,135,107,0.16); border-radius:16px; padding:12px; }
+        .sync-conflict-kicker { font-size:0.72rem; color:var(--text-secondary); margin-bottom:6px; }
+        .sync-conflict-time { font-size:0.84rem; font-weight:700; color:var(--text-primary); line-height:1.45; }
+        .sync-conflict-sub { font-size:0.74rem; color:var(--text-secondary); margin-top:5px; line-height:1.55; }
+        .sync-modal-actions { display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+        .sync-modal-actions .btn { margin-top:0; }
+        .sync-modal-note { font-size:0.75rem; color:var(--text-secondary); line-height:1.6; margin-top:10px; }
+        .sync-mini-status { margin-top:8px; font-size:0.76rem; color:var(--accent-deep); }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: 0.3s; }
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
         .modal-content { background: #fff; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; max-height: 85vh; overflow-y: auto; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transform: translateY(20px); transition: 0.3s; text-align: left; }
@@ -996,6 +1008,26 @@
         <button class="btn-outline" onclick="switchPage('settings')"><i class="fas fa-arrow-left"></i> 返回設定</button>
     </div>
 
+    
+    <div id="sync-conflict-modal" class="modal-overlay">
+        <div class="modal-content" style="text-align:left; max-width:460px;">
+            <div class="sync-conflict-title">
+                <div class="sync-conflict-icon"><i class="fas fa-code-compare"></i></div>
+                <div>
+                    <div style="font-size:1rem; font-weight:700;">同步前先確認要保留哪一份</div>
+                    <div style="font-size:0.78rem; color:var(--text-secondary); margin-top:2px;">偵測到本機和雲端不是同一版資料</div>
+                </div>
+            </div>
+            <div id="sync-conflict-body" class="sync-conflict-card"></div>
+            <div class="sync-modal-actions">
+                <button id="sync-keep-local-btn" type="button" class="btn"><i class="fas fa-cloud-arrow-up"></i> 保留本機，覆蓋雲端</button>
+                <button id="sync-keep-cloud-btn" type="button" class="btn btn-outline"><i class="fas fa-cloud-arrow-down"></i> 保留雲端，載回這台裝置</button>
+                <button id="sync-cancel-btn" type="button" class="btn btn-cancel">先不要，晚點再決定</button>
+            </div>
+            <div class="sync-modal-note">時間皆以台灣時間顯示。為了避免直接蓋掉上一版，系統會先停在這裡，等妳選擇。</div>
+        </div>
+    </div>
+
     <div id="debt-form-modal" class="modal-overlay">
         <div class="modal-content" style="text-align: left;">
             <h3 style="margin-top:0; color:var(--danger); border-bottom: 2px solid #ffebee; padding-bottom:10px;"><i class="fas fa-fire"></i> 新增 / 更新負債目標</h3>
@@ -1382,6 +1414,7 @@
         let cloudSaveTimer = null;
         let suppressCloudAutoSave = false;
         let lastCloudSnapshotMeta = null;
+        let syncConflictState = null;
 
         function getLocalUpdatedAt() {
             return localStorage.getItem('bear_local_updated_at') || '';
@@ -1399,19 +1432,32 @@
             if (!isoString) return '尚未建立';
             const d = new Date(isoString);
             if (isNaN(d.getTime())) return '尚未建立';
-            return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            return new Intl.DateTimeFormat('zh-TW', {
+                timeZone: 'Asia/Taipei',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }).format(d).replace(/\//g, '/');
+        }
+
+        function stableStringify(value) {
+            if (value === null || typeof value !== 'object') return JSON.stringify(value);
+            if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
+            const keys = Object.keys(value).filter(key => key !== '_syncMeta').sort();
+            return '{' + keys.map(key => JSON.stringify(key) + ':' + stableStringify(value[key])).join(',') + '}';
         }
 
         function buildStateFingerprint(payload) {
-            const txLen = (payload.tx || []).length;
-            const shopLen = (payload.shop || []).length;
-            const debtLen = (payload.debts || []).length;
-            const nwLen = (payload.networth || []).length;
-            const sharedDepositLen = (payload.sharedDeposits || []).length;
-            const budgetKeys = Object.keys(payload.budget || {}).length;
-            const envelopeLen = (payload.envelopes || []).length;
-            const lastTxId = txLen ? (payload.tx[0]?.id || payload.tx[txLen - 1]?.id || '') : '';
-            return [txLen, shopLen, debtLen, nwLen, sharedDepositLen, budgetKeys, envelopeLen, lastTxId].join('|');
+            const raw = stableStringify(payload || {});
+            let hash = 0;
+            for (let i = 0; i < raw.length; i++) {
+                hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+                hash |= 0;
+            }
+            return `fp_${raw.length}_${Math.abs(hash)}`;
         }
 
         function getLocalStateFingerprint() {
@@ -1461,8 +1507,75 @@
             const localTs = localUpdatedAt ? new Date(localUpdatedAt).getTime() : 0;
             const cloudTs = cloudUpdatedAt ? new Date(cloudUpdatedAt).getTime() : 0;
             const different = !!(hasLocalData && hasCloudData && localFingerprint !== cloudFingerprint);
-            const hasConflict = different && Math.abs(localTs - cloudTs) > 30000;
-            return { hasConflict, localUpdatedAt, cloudUpdatedAt, localFingerprint, cloudFingerprint, hasLocalData, hasCloudData, cloudMeta };
+            const hasConflict = different;
+            let newerSide = '';
+            if (localTs && cloudTs) newerSide = localTs >= cloudTs ? 'local' : 'cloud';
+            else if (localTs) newerSide = 'local';
+            else if (cloudTs) newerSide = 'cloud';
+            return { hasConflict, localUpdatedAt, cloudUpdatedAt, localFingerprint, cloudFingerprint, hasLocalData, hasCloudData, cloudMeta, localTs, cloudTs, newerSide };
+        }
+
+        function closeSyncConflictModal() {
+            const modal = document.getElementById('sync-conflict-modal');
+            if (modal) modal.classList.remove('show');
+        }
+
+        function buildConflictSummary(compare, mode = 'load') {
+            const newerText = compare.newerSide === 'local'
+                ? '目前看起來本機較新。'
+                : compare.newerSide === 'cloud'
+                    ? '目前看起來雲端較新。'
+                    : '目前無法判斷哪一份較新。';
+            return `
+                <div style="font-size:0.9rem; color:var(--text-primary); line-height:1.7;">
+                    偵測到 <strong>${mode === 'save' ? '準備同步到雲端前' : '載入雲端前'}</strong>，本機和雲端不是同一份資料。<br>${newerText}
+                </div>
+                <div class="sync-conflict-grid">
+                    <div class="sync-conflict-box">
+                        <div class="sync-conflict-kicker">本機上一版時間</div>
+                        <div class="sync-conflict-time">${formatDateTimeDisplay(compare.localUpdatedAt)}</div>
+                        <div class="sync-conflict-sub">這台裝置目前保留的版本</div>
+                    </div>
+                    <div class="sync-conflict-box">
+                        <div class="sync-conflict-kicker">雲端上一版時間</div>
+                        <div class="sync-conflict-time">${formatDateTimeDisplay(compare.cloudUpdatedAt)}</div>
+                        <div class="sync-conflict-sub">帳號裡已存在的版本</div>
+                    </div>
+                </div>
+                <div class="sync-mini-status">為了避免直接蓋掉上一版，系統已先暫停自動覆蓋。</div>
+            `;
+        }
+
+        function openSyncConflictModal(compare, mode = 'load') {
+            syncConflictState = { compare, mode };
+            const modal = document.getElementById('sync-conflict-modal');
+            const body = document.getElementById('sync-conflict-body');
+            const localBtn = document.getElementById('sync-keep-local-btn');
+            const cloudBtn = document.getElementById('sync-keep-cloud-btn');
+            if (!modal || !body || !localBtn || !cloudBtn) return;
+            body.innerHTML = buildConflictSummary(compare, mode);
+            localBtn.innerHTML = `<i class="fas fa-cloud-arrow-up"></i> ${mode === 'save' ? '仍要保留本機，覆蓋雲端' : '改用本機版本，覆蓋雲端'}`;
+            cloudBtn.innerHTML = `<i class="fas fa-cloud-arrow-down"></i> ${mode === 'save' ? '改保留雲端，載回這台裝置' : '保留雲端，載回這台裝置'}`;
+            modal.classList.add('show');
+        }
+
+        async function resolveSyncConflict(action) {
+            const state = syncConflictState;
+            closeSyncConflictModal();
+            if (!state) return false;
+            syncConflictState = null;
+            if (action === 'keep-local') {
+                const ok = await saveToCloud('resolve-conflict-keep-local', { force: true });
+                if (ok) updateCloudAuthStatus({ type: 'ok', badge: '已保留本機', desc: '已用這台裝置的版本覆蓋雲端。' });
+                return ok;
+            }
+            if (action === 'keep-cloud') {
+                const ok = await loadFromCloud({ force: true });
+                if (ok === true) updateCloudAuthStatus({ type: 'ok', badge: '已保留雲端', desc: '已把雲端版本載回這台裝置。' });
+                return ok;
+            }
+            updateCloudAuthStatus({ type: 'warn', badge: '待妳決定', desc: '本機和雲端不是同一份資料，系統先暫停自動覆蓋。' });
+            return false;
         }
 
         function collectAppState() {
@@ -1566,9 +1679,30 @@
             return user;
         }
 
-        async function saveToCloud(reason = 'manual') {
+        async function saveToCloud(reason = 'manual', options = {}) {
             const user = await getCurrentUser();
             if (!user) return false;
+            const { force = false, silent = false } = options;
+            const { data: remoteRow, error: readError } = await supabaseClient
+                .from('user_snapshots')
+                .select('*')
+                .eq('user_id', user.id)
+                .maybeSingle();
+            if (readError) {
+                console.error('saveToCloud precheck error:', readError);
+                updateCloudAuthStatus({ type: 'error', badge: '同步失敗', desc: `同步前檢查失敗：${readError.message}` });
+                return false;
+            }
+            if (remoteRow?.data_json) {
+                const compare = compareLocalAndCloud(remoteRow);
+                lastCloudSnapshotMeta = { updatedAt: compare.cloudUpdatedAt || remoteRow.updated_at || '', email: user.email, isLoggedIn: true, hasConflict: compare.hasConflict };
+                renderSyncHints();
+                if (compare.hasConflict && !force) {
+                    updateCloudAuthStatus({ type: 'warn', badge: '發現差異', desc: `本機是 ${formatDateTimeDisplay(compare.localUpdatedAt)}，雲端是 ${formatDateTimeDisplay(compare.cloudUpdatedAt)}。先確認要保留哪一份。` });
+                    if (!silent) openSyncConflictModal(compare, 'save');
+                    return 'conflict';
+                }
+            }
             const payload = collectAppState();
             const nowIso = new Date().toISOString();
             payload._syncMeta = {
@@ -1630,7 +1764,7 @@
                     desc: `這台裝置是 ${formatDateTimeDisplay(compare.localUpdatedAt)}，雲端是 ${formatDateTimeDisplay(compare.cloudUpdatedAt)}。先確認要保留哪一份，再決定是否載入雲端。`
                 });
                 renderSyncHints();
-                if (!silent) alert('偵測到本機和雲端不是同一份資料。若要用雲端覆蓋本機，請再按一次「從雲端載回資料」。');
+                if (!silent) openSyncConflictModal(compare, 'load');
                 return 'conflict';
             }
             applyAppState(data.data_json);
@@ -1705,7 +1839,7 @@
             const loadResult = await loadFromCloud({ silent: true });
             await refreshCloudAuthStatus();
             if (loadResult === 'conflict') {
-                alert('登入成功，但偵測到本機與雲端資料不同。請先確認同步狀態，再決定要載入雲端還是把目前資料同步上去。');
+                updateCloudAuthStatus({ type: 'warn', badge: '登入成功', desc: '已登入，但本機和雲端不是同一份資料，請先選擇要保留哪一份。' });
             } else {
                 alert('登入成功，雲端資料已準備好。');
             }
@@ -1718,7 +1852,7 @@
                 return;
             }
             const ok = await saveToCloud('manual-button');
-            if (ok) alert('已把目前資料同步到雲端。');
+            if (ok === true) alert('已把目前資料同步到雲端。');
         }
 
         async function handleCloudLoadNow() {
@@ -1728,13 +1862,7 @@
                 return;
             }
             const firstTry = await loadFromCloud();
-            if (firstTry === 'conflict') {
-                const confirmLoad = confirm('本機和雲端看起來不是同一份資料。確定要用雲端覆蓋這台裝置嗎？');
-                if (!confirmLoad) return;
-                const forced = await loadFromCloud({ force: true });
-                if (forced === true) alert('已用雲端資料覆蓋這台裝置。');
-                return;
-            }
+            if (firstTry === 'conflict') return;
             if (firstTry) alert('已從雲端載回資料。');
         }
 
@@ -1750,6 +1878,14 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            const syncCancelBtn = document.getElementById('sync-cancel-btn');
+            const syncKeepLocalBtn = document.getElementById('sync-keep-local-btn');
+            const syncKeepCloudBtn = document.getElementById('sync-keep-cloud-btn');
+            const syncModal = document.getElementById('sync-conflict-modal');
+            if (syncCancelBtn) syncCancelBtn.addEventListener('click', () => resolveSyncConflict('cancel'));
+            if (syncKeepLocalBtn) syncKeepLocalBtn.addEventListener('click', () => resolveSyncConflict('keep-local'));
+            if (syncKeepCloudBtn) syncKeepCloudBtn.addEventListener('click', () => resolveSyncConflict('keep-cloud'));
+            if (syncModal) syncModal.addEventListener('click', (e) => { if (e.target === syncModal) closeSyncConflictModal(); });
             if (hasAnyUserData() && !getLocalUpdatedAt()) setLocalUpdatedAt('init-existing-local-data');
             await refreshCloudAuthStatus();
             renderSyncHints();
